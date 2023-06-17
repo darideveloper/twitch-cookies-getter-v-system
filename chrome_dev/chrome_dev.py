@@ -1,15 +1,18 @@
 import os
 import sys
 import psutil
-from time import sleep
-
 import PyChromeDevTools
+from time import sleep
+from dotenv import load_dotenv
 
-from credentials import CHROME_PATH
+load_dotenv ()
+
+CHROME_PATH = os.getenv ("CHROME_PATH")
 
 class ChromDevWrapper ():
     
-    def __init__ (self, port:int=9222, proxy_host:str="", proxy_port:str="", start_chrome:bool=True, start_killing:bool=True):    
+    def __init__ (self, port:int=9222, proxy_host:str="", proxy_port:str="", 
+                  start_chrome:bool=True, start_killing:bool=True):    
         """ Open chrome and conhect using PyChromeDevTools
 
         Args:
