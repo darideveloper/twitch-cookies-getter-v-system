@@ -1,23 +1,47 @@
+import os
+import sys
+import psutil
 from time import sleep
 
 import PyChromeDevTools
 
+from credentials import CHROME_PATH
+
 class ChromDevWrapper ():
     
-    def __init__ (self, port:int):    
-        """ Conhect to chrome using PyChromeDevTools
+    def __init__ (self, port:int=9222, proxy_host:str="", proxy_port:str="", start_chrome:bool=True, start_killing:bool=True):    
+        """ Open chrome and conhect using PyChromeDevTools
 
         Args:
             port (int): port or chrome running in debug mode
+            proxy_host (str, optional): Proxy ip. Defaults to "".
+            proxy_port (str, optional): Proxy port. Defaults to "".
+            start_chrome (bool, optional): Open new chrome instance. Defaults to True.
+            start_killing (bool, optional): Kill (true) all chrome windows before start. Defaults to True.
         """
+        
+        if start_killing:
+            self.quit ()
+            
+        if start_chrome:
+                        
+            command = f'"{CHROME_PATH}" --remote-debugging-port={port} --remote-allow-origins=*'
+            if proxy_host != "" and proxy_port != "":
+                # Start chrome with proxies
+                command += f' --proxy-server={proxy_host}:{proxy_port}'
+                
+            os.popen (command)
+                
+            sleep (5)
         
         self.base_wait_time = 2
         
         try:
             self.chrome = PyChromeDevTools.ChromeInterface(port=port)
         except:
-            print ("Chome is not open. Please open chrome with the custom shorcut and try again.")
-            quit ()
+            print ("Chrome is not open. Please open chrome with the custom shorcut and try again.")
+            sys.exit (1)
+            
         self.chrome.Network.enable()
         self.chrome.Page.enable()
         
@@ -132,3 +156,18 @@ class ChromDevWrapper ():
             return response[0]['result']["result"]["value"].strip()
         except:
             return ""
+        
+    def quit (self, kill_chrome:bool=True):
+        """ Close chrome and conexion   
+
+        Args:
+            kill_chrome (bool, optional): Kill (true) all chrome windows. Defaults to True.
+        """
+        
+        if kill_chrome:
+            for process in psutil.process_iter(['pid', 'name']):
+                if 'chrome' in process.info['name']:
+                    try:
+                        process.kill()
+                    except:
+                        pass
