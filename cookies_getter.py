@@ -1,4 +1,5 @@
 import os
+from time import sleep
 from dotenv import load_dotenv
 from chrome_dev.chrome_dev import ChromDevWrapper
 from api import Api
@@ -21,7 +22,12 @@ class CookiesGetter (ChromDevWrapper):
         
         # Scraping variables
         self.selectors = {
-                
+            "login_user": '#login-username',
+            "login_password": '#password-input',
+            "login_button": '[data-a-target="passport-login-button"]',
+            "login_token": '.Layout-sc-1xcs6mc-0.bnzvpg.tw-form-group',
+            "login_error": ".server-message-alert",
+            "twitch_logo": '[data-a-target="home-link"]'
         }
         
         self.pages = {
@@ -42,7 +48,53 @@ class CookiesGetter (ChromDevWrapper):
             proxy_host=proxy_host, 
             proxy_port=proxy_port, 
         )
+        
+    def __login__ (self, user_name:str, user_password:str):
+        """ Login to twitch with user and password
+
+        Args:
+            user_name (str): twitch user name
+            user_password (str): twitch password
+        """
+        
+        # Delete old cookies 
+        self.set_page (self.pages["login"])
+        self.delete_cookies ()
+        
+        # Login form
+        self.set_page (self.pages["login"])
+        self.send_data (self.selectors["login_user"], user_name)
+        self.send_data (self.selectors["login_password"], user_password)
+        self.click (self.selectors["login_button"])
+        sleep (5)
+        
+        # Catch token validation
+        token_text = self.get_text (self.selectors["login_token"])
+        if "token" in token_text.lower():
+            print ("\tToken validation required")
+            return False
+        
+        # Catch invalid credentials
+        error_text = self.get_text (self.selectors["login_error"])
+        if error_text.lower():
+            print ("\tInvalid credentials")
+            return False
+        
+        # Validate home page
+        logo = self.count_elems (self.selectors["twitch_logo"])
+        if not logo:
+            print ("\tLogin failed. Unknown error")
+            return False
+        
+        return True
     
+    def __update_cookies__ (self):
+        """ Get current cookies and sent to backend 
+        """
+        
+        cookies = self.get_cookies ()
+        print (cookies)        
+        
     def auto_run (self):
         """ Get users and passwords from api and login to twitch
         """
@@ -53,7 +105,7 @@ class CookiesGetter (ChromDevWrapper):
             
             user_name = user["username"]
             user_password = user["password"]
-            print (f"User: {user_name}")            
+            print (f"User: {user_name}")
             
             # Skip users with empty password
             if user_password.strip() == "":
@@ -63,19 +115,16 @@ class CookiesGetter (ChromDevWrapper):
             # Login
             print ("\tLogin...")
             self.__start_chrome__ ()
+            
             proxy_valid = self.valid_proxy ()
             if not proxy_valid:
-                print (f"proxy not working: {self.proxy}")
                 continue
-            self.__login__ (user_name, user_password)
-                
             
+            logged = self.__login__ (user_name, user_password)
+            if not logged:
+                continue
             
-        
-        
-        
-        
-
+            self.__update_cookies__ ()
         
 cookies_getter = CookiesGetter ()
 cookies_getter.auto_run ()

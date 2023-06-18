@@ -185,6 +185,17 @@ class ChromDevWrapper ():
         # Validate content
         body = self.get_text ("body")
         if not '"ip":' in body:
+            print (f"proxy not working: {self.proxy}")
             return False
         
         return True
+    
+    def get_cookies (self) -> dict:
+        """ Get cookies from the 
+
+        Returns:
+            dict: cookies data
+        """
+        
+        cookies, _ = self.chrome.Network.getCookies()
+        return cookies["result"]["cookies"]
