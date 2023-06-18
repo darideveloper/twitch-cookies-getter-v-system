@@ -25,7 +25,6 @@ class CookiesGetter (ChromDevWrapper):
         }
         
         self.pages = {
-            "proxy_validation": "http://ipinfo.io/json",
             "login": "https://www.twitch.tv/login"
         }
         
@@ -42,22 +41,7 @@ class CookiesGetter (ChromDevWrapper):
         super().__init__(
             proxy_host=proxy_host, 
             proxy_port=proxy_port, 
-            chrome_path=CHROME_PATH
         )
-        
-    def __validate_proxy__ (self):
-        """ Go to a sample page to validate proxy
-        """
-        
-        # Load sample page
-        self.set_page (self.pages["proxy_validation"])
-        
-        # Validate content
-        body = self.get_text ("body")
-        if not '"ip":' in body:
-            return False
-        
-        return True
     
     def auto_run (self):
         """ Get users and passwords from api and login to twitch
@@ -79,7 +63,7 @@ class CookiesGetter (ChromDevWrapper):
             # Login
             print ("\tLogin...")
             self.__start_chrome__ ()
-            proxy_valid = self.__validate_proxy__ ()
+            proxy_valid = self.valid_proxy ()
             if not proxy_valid:
                 print (f"proxy not working: {self.proxy}")
                 continue

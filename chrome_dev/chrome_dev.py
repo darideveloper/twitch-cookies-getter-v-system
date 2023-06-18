@@ -35,7 +35,7 @@ class ChromDevWrapper ():
                 
             os.popen (command)
                 
-            sleep (5)
+            sleep (10)
         
         self.base_wait_time = 2
         
@@ -174,3 +174,17 @@ class ChromDevWrapper ():
                         process.kill()
                     except:
                         pass
+                    
+    def valid_proxy (self):
+        """ Check with sample page, if current proxy is valid
+        """
+        
+        # Load sample page
+        self.set_page ("http://ipinfo.io/json")
+        
+        # Validate content
+        body = self.get_text ("body")
+        if not '"ip":' in body:
+            return False
+        
+        return True
