@@ -13,12 +13,19 @@ class CookiesGetter (ChromDevWrapper):
     save them in backend
     """
     
-    def __init__ (self):
+    def __init__ (self, project:str):
         """ Init class
+        
+        Args:
+            project (str): project name to update cookies
         """
         
+        print (f"\nStarting cookies getter for project: {project.upper()}...\n")
+        
+        self.project = project
+        
         # Connect to api
-        self.api = Api()
+        self.api = Api(project)
         
         # Scraping variables
         self.selectors = {
@@ -139,6 +146,3 @@ class CookiesGetter (ChromDevWrapper):
                 continue
             
             self.__update_cookies__ (user_name)
-        
-cookies_getter = CookiesGetter ()
-cookies_getter.auto_run ()

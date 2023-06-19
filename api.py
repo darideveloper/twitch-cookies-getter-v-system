@@ -6,6 +6,15 @@ API_HOST = os.getenv("API_HOST")
 TOKEN = os.getenv("TOKEN")
 
 class Api ():
+    
+    def __init__ (self, project):
+        """ Init class
+
+        Args:
+            project (str): project name to update cookies
+        """
+        
+        self.project = project
 
     def __requests_url__(self, endpoint:str, method:str="get", json_data:dict={}) -> requests.get:
         """ Request data from specific endpoint and and quit if error happens
@@ -20,7 +29,7 @@ class Api ():
         """
 
         # Generate endpoint
-        url = f"{API_HOST}/{endpoint}/?token={TOKEN}"
+        url = f"{API_HOST}/{self.project}/{endpoint}/?token={TOKEN}"
         
         # Submit request 
         if method == "get":
@@ -99,6 +108,6 @@ class Api ():
         
 
 if __name__ == "__main__":
-    api = Api()
+    api = Api("botcheers")
     data = api.get_users ()
     print (data)

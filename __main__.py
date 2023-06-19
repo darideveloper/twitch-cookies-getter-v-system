@@ -1,13 +1,7 @@
-import os
-from dotenv import load_dotenv
-from logs import logger
-from scraping_manager.automate import WebScraping
+from cookies_getter import CookiesGetter
 
-load_dotenv ()
-VAR = os.getenv ("VAR")
+cookies_getter = CookiesGetter ("botcheers")
+cookies_getter.auto_run ()
 
-def main (): 
-    
-
-if __name__ == "__main__":
-    main()
+cookies_getter = CookiesGetter ("botviews")
+cookies_getter.auto_run ()
