@@ -88,13 +88,27 @@ class CookiesGetter (ChromDevWrapper):
         
         return True
     
-    def __update_cookies__ (self):
+    def __update_cookies__ (self, user_name:str):
         """ Get current cookies and sent to backend 
+        
+        Args:
+            user_name (str): user name
         """
         
+        print ("\tUpdating cookies...")
+    
+        # Get twitch cookies
         cookies = self.get_cookies ()
-        print (cookies)        
+        cookies_formatted = {
+            "cookies": cookies
+        }
+        res = self.api.post_cookies (user_name, cookies_formatted)
         
+        if res["status"] == "ok":
+            print ("\tCookies updated")
+        else:
+            print (f"\tError updating cookies: {res['message']}")
+            
     def auto_run (self):
         """ Get users and passwords from api and login to twitch
         """
@@ -124,7 +138,7 @@ class CookiesGetter (ChromDevWrapper):
             if not logged:
                 continue
             
-            self.__update_cookies__ ()
+            self.__update_cookies__ (user_name)
         
 cookies_getter = CookiesGetter ()
 cookies_getter.auto_run ()

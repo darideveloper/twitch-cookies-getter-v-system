@@ -7,19 +7,26 @@ TOKEN = os.getenv("TOKEN")
 
 class Api ():
 
-    def __requests_url__(self, endpoint: str) -> requests.get:
+    def __requests_url__(self, endpoint:str, method:str="get", json_data:dict={}) -> requests.get:
         """ Request data from specific endpoint and and quit if error happens
 
         Args:
             endpoint (str): endpoint to request, like "users" or "settings"
+            method (str, optional): request method, like "get" or "post". Defaults to "get".
+            json_data (dict, optional): json data to send in post request. Defaults to {}.
 
         Returns:
             requests.get: response of requests to the endpoint
         """
 
-        # Request data to specific url
+        # Generate endpoint
         url = f"{API_HOST}/{endpoint}/?token={TOKEN}"
-        res = requests.get(url)
+        
+        # Submit request 
+        if method == "get":
+            res = requests.get(url)
+        else:
+            res = requests.post(url, json=json_data)
 
         if res.status_code == 200:
             return res
@@ -69,6 +76,27 @@ class Api ():
         # Get data from api
         res = self.__requests_url__("users")
         return res.json()
+    
+    def post_cookies (self, user:str, cookies) -> dict:
+        """ Update cookies of specific user
+
+        Args:
+            user (str): user name
+
+        Returns:
+            dict: response data from API
+            
+            Example:
+            
+            {
+                "status": "ok",
+                "message": "Cookies updated" 
+            }
+        """
+        
+        res = self.__requests_url__(f"update-cookies/{user}", method="post", json_data=cookies)
+        return res.json()
+        
 
 if __name__ == "__main__":
     api = Api()
