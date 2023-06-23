@@ -122,7 +122,7 @@ class CookiesGetter (ChromDevWrapper):
         
         # Get and loop users
         users = self.api.get_users ()
-        for user in users["users"]:
+        for user in users:
             
             user_name = user["username"]
             user_password = user["password"]

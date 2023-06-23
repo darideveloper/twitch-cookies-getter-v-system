@@ -83,8 +83,24 @@ class Api ():
         """
         
         # Get data from api
-        res = self.__requests_url__("users")
-        return res.json()
+        
+        if self.project == "botcheers":
+            res = self.__requests_url__("users")
+            
+            # Format response
+            return res.json()["users"]
+        else:
+            res = self.__requests_url__("users")
+            
+            # Format response
+            json = res.json()
+            users = list(map(lambda user: user["fields"], json))
+            users_formatted = list(map(lambda user: {
+                "username": user["name"],
+                "password": user["password"],
+            }, users))
+            
+            return users_formatted
     
     def post_cookies (self, user:str, cookies) -> dict:
         """ Update cookies of specific user
