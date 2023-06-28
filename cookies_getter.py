@@ -7,6 +7,7 @@ from api import Api
 # Environment variables
 load_dotenv ()
 CHROME_PATH = os.getenv ("CHROME_PATH")
+DEBUG_USERS = os.getenv ("DEBUG_USERS").split (",")
 
 class CookiesGetter (ChromDevWrapper):
     """ Login to twitch with user and password, get cookies and
@@ -121,12 +122,16 @@ class CookiesGetter (ChromDevWrapper):
         """
         
         # Get and loop users
-        users = self.api.get_users ()
+        users = self.api.get_users ()        
         for user in users:
             
             user_name = user["username"]
             user_password = user["password"]
             print (f"User: {user_name}")
+            
+            # Skip users in debug mode
+            if DEBUG_USERS and user_name not in DEBUG_USERS:
+                continue
             
             # Skip users with empty password
             if user_password.strip() == "":
