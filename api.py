@@ -1,9 +1,12 @@
 import os
+import sys
+import json
+import random
 import requests
-from dotenv import load_dotenv
 
 API_HOST = os.getenv("API_HOST")
 TOKEN = os.getenv("TOKEN")
+TOKEN_WEBSHARE = os.getenv("TOKEN_WEBSHARE")
 
 class Api ():
     
@@ -15,6 +18,44 @@ class Api ():
         """
         
         self.project = project
+        self.proxies = []
+        
+        # Get and validate token
+        tokens_path = os.path.join (os.path.dirname (__file__), "tokens.json")
+        with open (tokens_path, "r") as file:
+            tokens = json.load (file)
+            
+        if project not in tokens:
+            print (f"Error: token not found for project '{project}'")
+            quit ()
+        else:
+            self.api_token = tokens[project]
+        
+        # Load proxies
+        self.__load_proxies__ ()
+
+    def __load_proxies__ (self):
+        """ Query proxies from the webshare api, and save them
+        """
+        
+        # Get proxies
+        res = requests.get (
+            "https://proxy.webshare.io/api/v2/proxy/list/?mode=direct&page=1&page_size=100", 
+            headers = { 
+                "Authorization": f"Token {TOKEN_WEBSHARE}"
+            }
+        )
+        if res.status_code != 200:
+            print (f"Error getting proxies: {res.status_code} - {res.text}")
+            quit ()
+
+        try:
+            json_data = res.json ()
+            self.proxies = json_data['results']
+        except Exception as error:
+            print (f"Error getting proxies: {error}")
+            
+            quit ()
 
     def __requests_url__(self, endpoint:str, method:str="get", json_data:dict={}) -> requests.get:
         """ Request data from specific endpoint and and quit if error happens
@@ -44,7 +85,7 @@ class Api ():
             quit()
 
     def get_proxy (self) -> dict:
-        """ get a random proxy from the API
+        """ get a random proxy 
 
         Returns:
             dict: proxy data (host and port)
@@ -60,8 +101,11 @@ class Api ():
         """
         
         # Get data from api
-        res = self.__requests_url__("proxy")
-        return res.json()
+        proxy = random.choice (self.proxies)
+        return {
+            "host": proxy["proxy_address"],
+            "port": proxy["port"],
+        }
     
     def get_users (self) -> dict:
         """ users and passwords from the API
@@ -122,8 +166,8 @@ class Api ():
         res = self.__requests_url__(f"update-cookies/{user}", method="post", json_data=cookies)
         return res.json()
         
-
 if __name__ == "__main__":
-    api = Api("botcheers")
-    data = api.get_users ()
-    print (data)
+    api = Api("viwers")
+    proxy = api.get_proxy()
+    
+    print ()
