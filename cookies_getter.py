@@ -10,6 +10,7 @@ CHROME_PATH = os.getenv ("CHROME_PATH")
 DEBUG_USERS = os.getenv ("DEBUG_USERS").split (",")
 if DEBUG_USERS == [""]:
     DEBUG_USERS = []
+LOGS_PREFIX = "(getter)"
 
 class CookiesGetter (ChromDevWrapper):
     """ Login to twitch with user and password, get cookies and
@@ -23,7 +24,7 @@ class CookiesGetter (ChromDevWrapper):
             project (str): project name to update cookies
         """
         
-        print (f"\nStarting cookies getter for project: {project.upper()}...\n")
+        print (f"\n{LOGS_PREFIX} Starting cookies getter for project: {project.upper()}...\n")
         
         self.project = project
         
@@ -50,8 +51,8 @@ class CookiesGetter (ChromDevWrapper):
         
         # Get proxy
         proxy = self.api.get_proxy ()
-        proxy_host = proxy["proxy"]["host"]
-        proxy_port = proxy["proxy"]["port"]
+        proxy_host = proxy["host"]
+        proxy_port = proxy["port"]
         
         # Connect to chrome
         super().__init__(
@@ -66,7 +67,7 @@ class CookiesGetter (ChromDevWrapper):
             user_name (str): twitch user name
             user_password (str): twitch password
         """
-        
+                
         # Delete old cookies 
         self.set_page (self.pages["login"])
         self.delete_cookies ()
@@ -81,43 +82,40 @@ class CookiesGetter (ChromDevWrapper):
         # Catch token validation
         token_text = self.get_text (self.selectors["login_token"])
         if "token" in token_text.lower():
-            print ("\tToken validation required")
+            print (f"\t{LOGS_PREFIX} Token validation required")
             return False
         
         # Catch invalid credentials
         error_text = self.get_text (self.selectors["login_error"])
         if error_text.lower():
-            print ("\tInvalid credentials")
+            print (f"\t{LOGS_PREFIX} Invalid credentials")
             return False
         
         # Validate home page
         logo = self.count_elems (self.selectors["twitch_logo"])
         if not logo:
-            print ("\tLogin failed. Unknown error")
+            print (f"\t{LOGS_PREFIX}Login failed. Unknown error")
             return False
         
         return True
     
-    def __update_cookies__ (self, user_name:str):
+    def __update_cookies__ (self, user_data:str):
         """ Get current cookies and sent to backend 
         
         Args:
-            user_name (str): user name
+            user_data (dict): id, username and password of user
         """
         
-        print ("\tUpdating cookies...")
+        print (f"\t{LOGS_PREFIX} Updating cookies...")
     
         # Get twitch cookies
         cookies = self.get_cookies ()
-        cookies_formatted = {
-            "cookies": cookies
-        }
-        res = self.api.post_cookies (user_name, cookies_formatted)
+        res = self.api.update_cookies (user_data, cookies)
         
         if res["status"] == "ok":
-            print ("\tCookies updated")
+            print (f"\t{LOGS_PREFIX} Cookies updated")
         else:
-            print (f"\tError updating cookies: {res['message']}")
+            print (f"\t{LOGS_PREFIX} Error updating cookies: {res['message']}")
             
     def auto_run (self):
         """ Get users and passwords from api and login to twitch
@@ -127,9 +125,9 @@ class CookiesGetter (ChromDevWrapper):
         users = self.api.get_users ()        
         for user in users:
             
-            user_name = user["username"]
+            user_name = user["user"]
             user_password = user["password"]
-            print (f"User: {user_name}")
+            print (f"{LOGS_PREFIX} User: {user_name}")
             
             # Skip users in debug mode
             if DEBUG_USERS and user_name not in DEBUG_USERS:
@@ -137,11 +135,11 @@ class CookiesGetter (ChromDevWrapper):
             
             # Skip users with empty password
             if user_password.strip() == "":
-                print ("\tEmpty password, user skipped")
+                print (f"\t{LOGS_PREFIX} Empty password, user skipped")
                 continue
             
             # Login
-            print ("\tLogin...")
+            print (f"\t{LOGS_PREFIX} Login...")
             self.__start_chrome__ ()
             
             proxy_valid = self.valid_proxy ()
@@ -152,4 +150,4 @@ class CookiesGetter (ChromDevWrapper):
             if not logged:
                 continue
             
-            self.__update_cookies__ (user_name)
+            self.__update_cookies__ (user)
