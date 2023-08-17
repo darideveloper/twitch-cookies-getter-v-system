@@ -76,7 +76,7 @@ class Api ():
             }
         """
         
-        print (f"{LOGS_PREFIX} Getting a random proxy...")
+        print (f"\t{LOGS_PREFIX} Getting a random proxy...")
         
         # Get data from api
         proxy = random.choice (self.proxies)
@@ -95,12 +95,12 @@ class Api ():
             [    
                 {
                     "id": 1,
-                    "username": "sample 1 user",
+                    "user": "sample 1 user",
                     "password": "sample 1 password",
                 },
                 {
                     "id": 2,
-                    "username": "sample 2 user",
+                    "user": "sample 2 user",
                     "password": "sample 2 password",
                 }
             ]
@@ -123,6 +123,9 @@ class Api ():
             quit ()
         
         users = json["data"]
+        
+        # Filter only no active users
+        users = list(filter (lambda user: not user["is_active"], users))
         
         # Formatd ata
         users = list(map (lambda user: {
@@ -151,7 +154,7 @@ class Api ():
             }
         """
         
-        print (f"{LOGS_PREFIX} Updating cookies for user '{user_data['user']}'...")
+        print (f"\t{LOGS_PREFIX} Updating cookies for user '{user_data['user']}'...")
         
         json_data = user_data
         json_data["cookies"] = cookies
