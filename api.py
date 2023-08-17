@@ -7,6 +7,7 @@ import requests
 API_HOST = os.getenv("API_HOST")
 TOKEN = os.getenv("TOKEN")
 TOKEN_WEBSHARE = os.getenv("TOKEN_WEBSHARE")
+LOGS_PREFIX = "(api)"
 
 class Api ():
     
@@ -26,7 +27,7 @@ class Api ():
             tokens = json.load (file)
             
         if project not in tokens:
-            print (f"Error: token not found for project '{project}'")
+            print (f"{LOGS_PREFIX} Error: token not found for project '{project}'")
             quit ()
         else:
             token = tokens[project]
@@ -40,6 +41,8 @@ class Api ():
     def __load_proxies__ (self):
         """ Query proxies from the webshare api, and save them
         """
+        
+        print (f"{LOGS_PREFIX} Loading proxies...")
         
         # Get proxies
         res = requests.get (
@@ -56,7 +59,7 @@ class Api ():
             json_data = res.json ()
             self.proxies = json_data['results']
         except Exception as error:
-            print (f"Error getting proxies: {error}")
+            print (f"{LOGS_PREFIX} Error getting proxies: {error}")
             
             quit ()
 
@@ -72,6 +75,8 @@ class Api ():
                 "port": 80,
             }
         """
+        
+        print (f"{LOGS_PREFIX} Getting a random proxy...")
         
         # Get data from api
         proxy = random.choice (self.proxies)
@@ -100,6 +105,8 @@ class Api ():
 
         """
         
+        print (f"{LOGS_PREFIX} Getting users...")
+        
         # Get data from api
         res = requests.get (
             f"{API_HOST}/{self.project}/bots/", 
@@ -110,7 +117,7 @@ class Api ():
         
         # Validate response
         if json["status"] != "ok":
-            print (f"Error getting users: {json['message']}")
+            print (f"{LOGS_PREFIX} Error getting users: {json['message']}")
             quit ()
         
         users = json["data"]
@@ -139,6 +146,8 @@ class Api ():
                 "message": "Cookies updated" 
             }
         """
+        
+        print (f"{LOGS_PREFIX} Updating cookies for user '{user}'...")
         
         res = self.__requests_url__(f"update-cookies/{user}", method="post", json_data=cookies)
         return res.json()
