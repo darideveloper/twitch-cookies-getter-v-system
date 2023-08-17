@@ -29,7 +29,10 @@ class Api ():
             print (f"Error: token not found for project '{project}'")
             quit ()
         else:
-            self.api_token = tokens[project]
+            token = tokens[project]
+            self.headers = {
+                "token": token
+            }
         
         # Load proxies
         self.__load_proxies__ ()
@@ -57,33 +60,6 @@ class Api ():
             
             quit ()
 
-    def __requests_url__(self, endpoint:str, method:str="get", json_data:dict={}) -> requests.get:
-        """ Request data from specific endpoint and and quit if error happens
-
-        Args:
-            endpoint (str): endpoint to request, like "users" or "settings"
-            method (str, optional): request method, like "get" or "post". Defaults to "get".
-            json_data (dict, optional): json data to send in post request. Defaults to {}.
-
-        Returns:
-            requests.get: response of requests to the endpoint
-        """
-
-        # Generate endpoint
-        url = f"{API_HOST}/{self.project}/{endpoint}/?token={TOKEN}"
-        
-        # Submit request 
-        if method == "get":
-            res = requests.get(url)
-        else:
-            res = requests.post(url, json=json_data)
-
-        if res.status_code == 200:
-            return res
-        else:
-            print("Error requesting data from API. Check your token.")
-            quit()
-
     def get_proxy (self) -> dict:
         """ get a random proxy 
 
@@ -91,12 +67,9 @@ class Api ():
             dict: proxy data (host and port)
             
             Example:
-            
             {
-                "proxy": {
-                    "host": "0.0.0.0",
-                    "port": 80,
-                }
+                "host": "0.0.0.0",
+                "port": 80,
             }
         """
         
@@ -107,44 +80,48 @@ class Api ():
             "port": proxy["port"],
         }
     
-    def get_users (self) -> dict:
+    def get_users (self) -> list:
         """ users and passwords from the API
 
         Returns:
-            dict: proxy data (host and port)
+            dict: user data (username and password)
             
             Example:
-            
-            {
-                "users": [
-                    {
-                        "username": "sample user",
-                        "password": "sample password",
-                    }
-                    ...
-                ]
-            }
+            [    
+                {
+                    "username": "sample 1 user",
+                    "password": "sample 1 password",
+                },
+                {
+                    "username": "sample 2 user",
+                    "password": "sample 2 password",
+                }
+            ]
+
         """
         
         # Get data from api
+        res = requests.get (
+            f"{API_HOST}/{self.project}/bots/", 
+            headers=self.headers
+        )
+        res.raise_for_status ()
+        json = res.json ()
         
-        if self.project == "botcheers":
-            res = self.__requests_url__("users")
-            
-            # Format response
-            return res.json()["users"]
-        else:
-            res = self.__requests_url__("users")
-            
-            # Format response
-            json = res.json()
-            users = list(map(lambda user: user["fields"], json))
-            users_formatted = list(map(lambda user: {
-                "username": user["name"],
-                "password": user["password"],
-            }, users))
-            
-            return users_formatted
+        # Validate response
+        if json["status"] != "ok":
+            print (f"Error getting users: {json['message']}")
+            quit ()
+        
+        users = json["data"]
+        
+        # Formatd ata
+        users = list(map (lambda user: {
+            "username": user["user"],
+            "password": user["password"],
+        }, users))
+        
+        return users
     
     def post_cookies (self, user:str, cookies) -> dict:
         """ Update cookies of specific user
@@ -169,5 +146,6 @@ class Api ():
 if __name__ == "__main__":
     api = Api("viwers")
     proxy = api.get_proxy()
+    users = api.get_users()
     
     print ()
