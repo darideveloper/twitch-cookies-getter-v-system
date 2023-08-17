@@ -8,6 +8,8 @@ from api import Api
 load_dotenv ()
 CHROME_PATH = os.getenv ("CHROME_PATH")
 DEBUG_USERS = os.getenv ("DEBUG_USERS").split (",")
+if DEBUG_USERS == [""]:
+    DEBUG_USERS = []
 
 class CookiesGetter (ChromDevWrapper):
     """ Login to twitch with user and password, get cookies and
