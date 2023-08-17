@@ -1,4 +1,12 @@
+import os
+from dotenv import load_dotenv
 from cookies_getter import CookiesGetter
+load_dotenv ()
 
-cookies_getter = CookiesGetter ("viwers")
-cookies_getter.auto_run ()
+PROJECTS = os.getenv ("PROJECTS").split (",")
+if PROJECTS == [""]:
+    PROJECTS = []
+
+for project in PROJECTS:
+    cookies_getter = CookiesGetter (project)
+    cookies_getter.auto_run ()
