@@ -7,6 +7,7 @@ import requests
 API_HOST = os.getenv("API_HOST")
 TOKEN = os.getenv("TOKEN")
 TOKEN_WEBSHARE = os.getenv("TOKEN_WEBSHARE")
+TOKEN_VIWERS = os.getenv("TOKEN_VIWERS")
 LOGS_PREFIX = "(api)"
 
 class Api ():
@@ -21,10 +22,9 @@ class Api ():
         self.project = project
         self.proxies = []
         
-        # Get and validate token
-        tokens_path = os.path.join (os.path.dirname (__file__), "tokens.json")
-        with open (tokens_path, "r") as file:
-            tokens = json.load (file)
+        tokens = {
+            "viwers": TOKEN_VIWERS,
+        }
             
         if project not in tokens:
             print (f"{LOGS_PREFIX} Error: token not found for project '{project}'")
